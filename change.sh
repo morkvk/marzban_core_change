@@ -114,27 +114,38 @@ echo "Установка завершена."
 }
 
 # Функция для обновления ядра Marzban Node
+# Функция для обновления ядра Marzban Node
 update_marzban_node() {
-get_xray_core
+    get_xray_core
 
     # Поиск пути до папки Marzban-node и файла docker-compose.yml
     marzban_node_dir=$(find / -type d -name "Marzban-node" -exec test -f "{}/docker-compose.yml" \; -print -quit)
 
     if [ -z "$marzban_node_dir" ]; then
         echo "Папка Marzban-node с файлом docker-compose.yml не найдена"
-        exit 1
+        echo "Хотите скачать её из репозитория в корневую папку? (y/n)"
+        read -r answer
+        if [[ "$answer" == "y" ]]; then
+            git clone https://github.com/Gozargah/Marzban-node.git /Marzban-node
+            echo "Папка Marzban-node успешно скачана в корневую папку."
+        else
+            echo "Обновление ядра Marzban Node не выполнено."
+            exit 1
+        fi
     fi
 
     # Проверяем, существует ли уже строка XRAY_EXECUTABLE_PATH в файле docker-compose.yml
     if ! grep -q "XRAY_EXECUTABLE_PATH: \"/var/lib/marzban/xray-core/xray\"" "$marzban_node_dir/docker-compose.yml"; then
-        # Если строка отсутствует, добавляем ее
+        # Если строка отсутствует, добавляем её
         sed -i '/environment:/!b;n;/XRAY_EXECUTABLE_PATH/!a\      XRAY_EXECUTABLE_PATH: "/var/lib/marzban/xray-core/xray"' "$marzban_node_dir/docker-compose.yml"
     fi
-# Проверяем, существует ли уже строка /var/lib/marzban:/var/lib/marzban в файле docker-compose.yml
-if ! grep -q "^\s*- /var/lib/marzban:/var/lib/marzban\s*$" "$marzban_node_dir/docker-compose.yml"; then
-    # Если строка отсутствует, добавляем ее
-    sed -i '/volumes:/!b;n;/^- \/var\/lib\/marzban:\/var\/lib\/marzban/!a\      - \/var\/lib\/marzban:\/var\/lib\/marzban' "$marzban_node_dir/docker-compose.yml"
-fi
+
+    # Проверяем, существует ли уже строка /var/lib/marzban:/var/lib/marzban в файле docker-compose.yml
+    if ! grep -q "^\s*- /var/lib/marzban:/var/lib/marzban\s*$" "$marzban_node_dir/docker-compose.yml"; then
+        # Если строка отсутствует, добавляем её
+        sed -i '/volumes:/!b;n;/^- \/var\/lib\/marzban:\/var\/lib\/marzban/!a\      - \/var\/lib\/marzban:\/var\/lib\/marzban' "$marzban_node_dir/docker-compose.yml"
+    fi
+
 
     # Перезапускаем Marzban-node
     echo "Перезапуск Marzban..."
