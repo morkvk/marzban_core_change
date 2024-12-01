@@ -139,7 +139,7 @@ fi
     # Перезапускаем Marzban-node
     echo "Перезапуск Marzban..."
     cd "$marzban_node_dir" || exit
-    docker compose up -d --force-recreate
+    docker-compose up -d --force-recreate
 
     echo "Обновление ядра на Marzban-node завершено. Ядро установлено версии $selected_version"
 }
